@@ -1,0 +1,13 @@
+{
+  "name": "Rocket Lab 3D 火箭星空實驗室",
+  "short_name": "Rocket Lab 3D",
+  "description": "擬真 3D 火箭組裝、升空與星際任務實驗。",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#030712",
+  "theme_color": "#050914",
+  "icons": [
+    { "src": "./assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
