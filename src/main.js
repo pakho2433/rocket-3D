@@ -1,13 +1,9 @@
-import { applyPhysicsPatches } from './source-patches.js';
-
 const chunkUrls = [
-  './runtime.part0.b64',
-  './runtime.part1.b64',
-  './runtime.part2.b64',
-  './runtime.part3a.b64',
-  './runtime.part3b.b64',
-  './runtime.part3c.b64',
-  './runtime.part3d.b64',
+  './builder.part0.b64',
+  './builder.part1.b64',
+  './builder.part2.b64',
+  './builder.part3.b64',
+  './builder.part4.b64',
 ].map((path) => new URL(path, import.meta.url));
 
 async function boot() {
@@ -25,14 +21,12 @@ async function boot() {
     );
 
     const binary = atob(chunks.join(''));
-    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
-    const decompressed = new Blob([bytes])
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    const stream = new Blob([bytes])
       .stream()
       .pipeThrough(new DecompressionStream('gzip'));
-    const source = applyPhysicsPatches(await new Response(decompressed).text());
-    const moduleUrl = URL.createObjectURL(
-      new Blob([source], { type: 'text/javascript' }),
-    );
+    const source = await new Response(stream).text();
+    const moduleUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
 
     try {
       await import(moduleUrl);
@@ -42,9 +36,7 @@ async function boot() {
   } catch (error) {
     console.error(error);
     const loading = document.querySelector('#loadingScreen');
-    if (loading) {
-      loading.innerHTML = `<strong>遊戲載入失敗</strong><small>${error.message}</small>`;
-    }
+    if (loading) loading.innerHTML = `<b>3D 遊戲載入失敗</b><span>${error.message}</span>`;
   }
 }
 
