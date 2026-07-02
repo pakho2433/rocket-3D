@@ -2,7 +2,10 @@ const chunkUrls = [
   './runtime.part0.b64',
   './runtime.part1.b64',
   './runtime.part2.b64',
-  './runtime.part3.b64',
+  './runtime.part3a.b64',
+  './runtime.part3b.b64',
+  './runtime.part3c.b64',
+  './runtime.part3d.b64',
 ];
 
 async function boot() {
