@@ -1,3 +1,5 @@
+import { applyPhysicsPatches } from './source-patches.js';
+
 const chunkUrls = [
   './runtime.part0.b64',
   './runtime.part1.b64',
@@ -6,7 +8,7 @@ const chunkUrls = [
   './runtime.part3b.b64',
   './runtime.part3c.b64',
   './runtime.part3d.b64',
-];
+].map((path) => new URL(path, import.meta.url));
 
 async function boot() {
   try {
@@ -17,7 +19,7 @@ async function boot() {
     const chunks = await Promise.all(
       chunkUrls.map(async (url) => {
         const response = await fetch(url, { cache: 'force-cache' });
-        if (!response.ok) throw new Error(`無法載入遊戲資源：${url}`);
+        if (!response.ok) throw new Error(`無法載入遊戲資源：${url.pathname}`);
         return (await response.text()).trim();
       }),
     );
@@ -27,7 +29,7 @@ async function boot() {
     const decompressed = new Blob([bytes])
       .stream()
       .pipeThrough(new DecompressionStream('gzip'));
-    const source = await new Response(decompressed).text();
+    const source = applyPhysicsPatches(await new Response(decompressed).text());
     const moduleUrl = URL.createObjectURL(
       new Blob([source], { type: 'text/javascript' }),
     );
