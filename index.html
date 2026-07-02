@@ -3,125 +3,118 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#050914" />
+  <meta name="theme-color" content="#65b8ef" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Rocket Lab 3D" />
-  <meta name="description" content="可在手機與 iPad 遊玩的擬真 3D 火箭組裝、升空與星際任務實驗。" />
+  <meta name="apple-mobile-web-app-title" content="Rocket Builder 3D" />
+  <meta name="description" content="可在手機和 iPad 遊玩的 3D 火箭組裝與升空物理實驗。" />
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./styles.css" />
-  <title>Rocket Lab 3D｜火箭星空實驗室</title>
+  <title>Rocket Builder 3D｜火箭組裝實驗</title>
   <script type="importmap">
     {
       "imports": {
         "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "cannon-es": "https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
       }
     }
   </script>
 </head>
 <body>
-  <div id="app">
-    <canvas id="scene" aria-label="3D 火箭實驗畫面"></canvas>
+  <main id="app" data-mode="build">
+    <canvas id="scene" aria-label="3D 火箭組裝與飛行畫面"></canvas>
 
-    <header class="topbar glass">
-      <div class="brand">
-        <span class="brand-mark">🚀</span>
-        <div><strong>ROCKET LAB 3D</strong><small>火箭星空實驗室</small></div>
+    <header class="hud-top">
+      <div class="top-left">
+        <button id="menuBtn" class="square-btn" type="button" aria-label="開啟說明">☰</button>
+        <button id="mapBtn" class="text-btn" type="button">MAP</button>
       </div>
-      <div class="top-actions">
-        <button id="qualityBtn" class="icon-btn" type="button" aria-label="切換畫質">AUTO</button>
-        <button id="soundBtn" class="icon-btn" type="button" aria-label="切換聲音">🔊</button>
-        <button id="helpBtn" class="icon-btn" type="button" aria-label="顯示說明">?</button>
+      <div class="mission-title">
+        <b>ROCKET BUILDER 3D</b>
+        <span id="modeLabel">BUILD MODE</span>
+      </div>
+      <div class="top-right">
+        <button id="undoBtn" class="square-btn" type="button" aria-label="撤銷">↶</button>
+        <button id="qualityBtn" class="text-btn" type="button">HD</button>
+        <button id="soundBtn" class="square-btn" type="button" aria-label="聲音">🔊</button>
       </div>
     </header>
 
-    <aside id="builderPanel" class="panel builder-panel glass">
-      <div class="panel-heading">
-        <div><span class="eyebrow">STEP 1</span><h1>組裝你的火箭</h1></div>
-        <button id="collapseBuilder" class="collapse-btn" type="button" aria-label="收合組裝面板">⌄</button>
-      </div>
-      <p class="panel-intro">點選配件加入火箭；可重複加入燃料箱與助推器。拖動畫面旋轉，雙指縮放。</p>
-      <div id="partsGrid" class="parts-grid"></div>
-      <div class="installed-wrap">
-        <div class="section-title"><span>已安裝配件</span><button id="resetRocket" type="button">重設</button></div>
-        <div id="installedList" class="installed-list"></div>
-      </div>
-    </aside>
+    <aside id="categoryRail" class="category-rail" aria-label="火箭配件分類"></aside>
 
-    <aside id="telemetryPanel" class="panel telemetry-panel glass">
-      <div class="panel-heading compact">
-        <div><span class="eyebrow">LIVE DATA</span><h2>任務遙測</h2></div>
-        <span id="statusBadge" class="status-badge">組裝中</span>
-      </div>
-      <div class="gauge-grid">
-        <div class="metric"><span>高度</span><strong id="altitudeMetric">0 m</strong></div>
-        <div class="metric"><span>速度</span><strong id="speedMetric">0 m/s</strong></div>
-        <div class="metric"><span>燃料</span><strong id="fuelMetric">0%</strong></div>
-        <div class="metric"><span>加速度</span><strong id="accelMetric">0.0 g</strong></div>
-      </div>
-      <div class="meter-row">
-        <div class="meter-label"><span>結構完整度</span><b id="integrityLabel">100%</b></div>
-        <div class="meter"><i id="integrityBar"></i></div>
-      </div>
-      <div class="meter-row">
-        <div class="meter-label"><span>熱負荷</span><b id="heatLabel">0%</b></div>
-        <div class="meter heat"><i id="heatBar"></i></div>
-      </div>
-      <div id="missionLog" class="mission-log" aria-live="polite"><p><time>系統</time> 歡迎來到火箭實驗室。</p></div>
-    </aside>
-
-    <section id="missionPanel" class="mission-panel glass">
-      <div class="mission-topline">
-        <div><span class="eyebrow">STEP 2</span><h2>選擇任務</h2></div>
-        <div id="readinessPill" class="readiness-pill">尚未完成組裝</div>
-      </div>
-      <div id="destinationButtons" class="destinations">
-        <button class="destination active" data-destination="earth" type="button"><span class="planet earth-mini"></span><span><b>地球軌道</b><small>升空後返回地球</small></span></button>
-        <button class="destination" data-destination="moon" type="button"><span class="planet moon-mini"></span><span><b>月球</b><small>所需 Δv 約 12.5 km/s</small></span></button>
-        <button class="destination" data-destination="mars" type="button"><span class="planet mars-mini"></span><span><b>火星</b><small>所需 Δv 約 14.5 km/s</small></span></button>
-      </div>
-      <div class="launch-row">
-        <div class="launch-summary">
-          <div><span>推重比</span><strong id="twrValue">0.00</strong></div>
-          <div><span>理論 Δv</span><strong id="deltaVValue">0.0 km/s</strong></div>
-          <div><span>總質量</span><strong id="massValue">0 t</strong></div>
+    <section id="partDrawer" class="part-drawer">
+      <div class="drawer-head">
+        <div>
+          <span id="categoryKicker">NOSE</span>
+          <h1 id="categoryTitle">火箭頭</h1>
         </div>
-        <button id="launchBtn" class="launch-btn" type="button" disabled><span class="launch-ring"></span><span><b>開始升空</b><small>HOLD TO LAUNCH</small></span></button>
+        <div class="drawer-actions">
+          <button id="inventoryBtn" type="button">已裝 <b id="totalParts">0</b></button>
+          <button id="resetBtn" type="button">重設</button>
+          <button id="closeDrawerBtn" type="button" aria-label="收起工具列">⌄</button>
+        </div>
       </div>
+      <div id="variantStrip" class="variant-strip"></div>
+      <div class="drawer-hint">點擊配件可加入；燃料箱、引擎、助推器、翼及工具可重複安裝。</div>
     </section>
 
-    <div id="flightControls" class="flight-controls hidden">
-      <button id="stageBtn" class="flight-btn warning" type="button"><b>分離助推器</b><small>STAGE</small></button>
-      <label class="throttle-control glass"><span>節流閥</span><input id="throttleSlider" type="range" min="0" max="100" value="100" /><b id="throttleLabel">100%</b></label>
-      <button id="actionBtn" class="flight-btn primary" type="button"><b>自動駕駛</b><small>ACTIVE</small></button>
+    <aside class="telemetry-card">
+      <div class="telemetry-title"><span id="statusDot"></span><b id="statusText">組裝中</b></div>
+      <dl>
+        <div><dt>高度</dt><dd id="altitudeValue">0 m</dd></div>
+        <div><dt>速度</dt><dd id="speedValue">0 m/s</dd></div>
+        <div><dt>質量</dt><dd id="massValue">0 t</dd></div>
+        <div><dt>推重比</dt><dd id="twrValue">0.00</dd></div>
+        <div><dt>Δv</dt><dd id="deltaVValue">0.00 km/s</dd></div>
+        <div><dt>燃料</dt><dd id="fuelValue">0%</dd></div>
+      </dl>
+      <div class="fuel-track"><i id="fuelBar"></i></div>
+    </aside>
+
+    <div class="view-controls">
+      <button id="rotateLeftBtn" type="button" aria-label="向左旋轉">◀</button>
+      <button id="rotateRightBtn" type="button" aria-label="向右旋轉">▶</button>
     </div>
 
-    <div id="orientationHint" class="orientation-hint">請將手機橫向放置，體驗會更完整。</div>
+    <section class="mission-dock">
+      <div class="destination-tabs" id="destinationTabs">
+        <button class="active" data-destination="earth" type="button">🌍 地球</button>
+        <button data-destination="moon" type="button">🌕 月球</button>
+        <button data-destination="mars" type="button">🔴 火星</button>
+      </div>
+      <button id="launchBtn" class="launch-btn" type="button" disabled>
+        <span class="launch-icon">▲</span>
+        <span><b>開始升空</b><small id="launchRequirement">請先完成基本組裝</small></span>
+      </button>
+    </section>
 
-    <dialog id="helpDialog" class="help-dialog glass">
-      <button id="closeHelp" class="dialog-close" type="button">×</button>
-      <span class="eyebrow">MISSION GUIDE</span><h2>如何完成任務</h2>
-      <ol>
-        <li><b>組裝：</b>至少需要指令艙、燃料箱、主引擎與整流罩。</li>
-        <li><b>檢查：</b>推重比需高於 1.20；月球與火星任務需要更高 Δv。</li>
-        <li><b>升空：</b>長按「開始升空」，系統會模擬燃料消耗、重力、阻力與結構負荷。</li>
-        <li><b>操控：</b>飛行途中可調節節流閥、分離助推器及啟動降落程序。</li>
-      </ol>
-      <p class="science-note">本遊戲採用真實公式的縮放模擬，適合探索物理概念；並非航空工程認證工具。</p>
+    <section id="flightControls" class="flight-controls is-hidden">
+      <button id="stageBtn" type="button"><b>STAGE</b><span>分離助推器</span></button>
+      <label><span>節流</span><input id="throttleInput" type="range" min="0" max="100" value="100" /><b id="throttleValue">100%</b></label>
+      <button id="returnBtn" type="button"><b>AUTO</b><span>自動導航</span></button>
+    </section>
+
+    <dialog id="inventoryDialog" class="sheet-dialog">
+      <header><div><span>ASSEMBLY</span><h2>已安裝配件</h2></div><button data-close-dialog type="button">×</button></header>
+      <div id="inventoryList" class="inventory-list"></div>
+      <footer><button id="clearAllBtn" type="button">清除全部</button><button data-close-dialog type="button">完成</button></footer>
     </dialog>
 
-    <div id="resultOverlay" class="result-overlay hidden">
-      <div class="result-card glass">
-        <div id="resultIcon" class="result-icon">🏆</div><span class="eyebrow">MISSION REPORT</span><h2 id="resultTitle">任務完成</h2><p id="resultText"></p>
-        <div id="resultStats" class="result-stats"></div><button id="retryBtn" class="retry-btn" type="button">返回實驗室</button>
-      </div>
-    </div>
+    <dialog id="helpDialog" class="sheet-dialog help-dialog">
+      <header><div><span>GUIDE</span><h2>火箭組裝說明</h2></div><button data-close-dialog type="button">×</button></header>
+      <ol>
+        <li>左邊工具列共有七個分類，每個分類提供五款配件。</li>
+        <li>點擊配件即可加入；燃料箱、引擎、助推器、翼及工具可加入多件。</li>
+        <li>至少安裝火箭頭、指令艙、燃料箱及引擎，並使推重比高於 1.15。</li>
+        <li>升空後會即時計算重力、燃料消耗、大氣阻力、推力與加速度。</li>
+      </ol>
+      <p>此版本以參考圖的手機火箭模擬器畫風製作：藍天、垂直火箭、簡潔工具列及大按鈕。</p>
+    </dialog>
 
-    <div id="loadingScreen" class="loading-screen"><div class="loader-orbit"><i></i><span>🚀</span></div><strong>正在建立星空與物理世界</strong><small>INITIALISING FLIGHT SYSTEMS</small></div>
-  </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="loadingScreen" class="loading-screen"><div class="mini-rocket">🚀</div><b>正在建立火箭工場</b><span>LOADING 3D PARTS</span></div>
+  </main>
   <script type="module" src="./src/main.js"></script>
 </body>
 </html>
